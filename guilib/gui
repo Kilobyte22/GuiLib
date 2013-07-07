@@ -1,0 +1,83 @@
+--[[
+    Simple Gui System
+]]
+
+local function loadMe()
+
+    local gm, sm = getmetatable, setmetatable
+
+    local handlers = {}
+
+    local envvars = {libpath = "/guilib/classes"}
+    function _G.getenv(name)
+        return envvars[name]
+    end
+
+    function _G.getenv(name, value)
+        envvars[name] = value
+    end
+
+    local loaded = {}
+
+    function _G.load(file)
+        if loaded[file] then return false end
+        for dir in envvars['libpath']:gmatch("[^:]+") do
+            local tmp = fs.combine(dir, file)
+            if fs.exists(tmp) and not fs.isDir(tmp) then
+                local f, m = loadfile(tmp)
+                if not f then error(m) end
+                setfenv(f, _G)
+                f()
+                loaded[file] = true
+                return true
+            end
+        end
+        error("Could not find lib "..file..". Maybe Libpath is messed up?", 2)
+    end
+
+    local yield = coroutine.yield
+    local mr
+
+    sleep(0)
+    os.queueEvent("testevent")
+
+    coroutine.yield = function ()
+        yield()
+        if not mr then mr = coroutine.running() end
+    end
+    coroutine.yield()
+
+    coroutine.yield = function (...)
+        local e = { yield(...) }
+        if coroutine.running() == mr then
+            if handlers[e[1]] then
+                for k, v in ipairs(handlers[e[1]]) do
+                    v(unpack(e))
+                end
+            end
+        end
+        return unpack(e)
+    end
+
+    function _G.on(name, callback)
+        handlers[name] = handlers[name] or {}
+        table.insert(handlers[name], callback)
+    end
+
+    function _G.clear()
+        term.clear()
+        term.setCursorPos(1, 1)
+    end
+
+    dofile("/guilib/classsystem.lua")
+
+end
+
+if _G.gui then 
+    local this = getfenv()
+    for k, v in pairs(gui) do
+        this[k] = v
+    end
+else
+    loadMe()
+end

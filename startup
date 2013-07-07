@@ -1,0 +1,34 @@
+os.loadAPI("/guilib/gui")
+
+clear()
+
+load "gui/Screen.lua"
+load "gui/Button.lua"
+load "gui/Label.lua"
+load "gui/Checkbox.lua"
+load "gui/Progressbar.lua"
+
+--for k, v in pairs(_G) do write(k..", ") end print()
+
+button = Button("lol")
+button:setSize(10, 3)
+SCREEN:add(button)
+
+prog = Progressbar()
+prog:setLocation(20, 10)
+prog.back = colors.red
+SCREEN:add(prog)
+
+button:on("click", function() 
+    prog:setProgress(50)
+end)
+
+label = Label("lol", 10, 10)
+SCREEN:add(label)
+
+check = Checkbox("lol")
+check:setLocation(20, 1)
+check.back = colors.blue
+SCREEN:add(check)
+
+while true do os.pullEvent() end
